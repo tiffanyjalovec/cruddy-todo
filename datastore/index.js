@@ -3,14 +3,25 @@ const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
 
+//need to create separate txts files named with id # with todo text on line 1
 var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
   var id = counter.getNextUniqueId();
-  items[id] = text;
-  callback(null, { id, text });
+  var newFileName = id.toString() + '.txt';
+  var newFile = path.join(exports.dataDir, newFileName);
+  console.log('create', id, newFileName, newFile);
+  // items[id] = text;
+  //this adds to object which we don't want to do anymore.  we want to write a new file and put in data folder.
+  fs.writeFile(newFile, text, (err) => {
+    if (err) {
+      throw ('error writing new item file');
+    } else {
+      callback(null, { id, text });
+    }
+  });
 };
 
 exports.readAll = (callback) => {

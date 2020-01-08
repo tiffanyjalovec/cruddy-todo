@@ -21,20 +21,17 @@ const readCounter = (callback) => {//during invocation, we will pass in a error 
     if (err) {
       callback(null, 0);
     } else {
-      console.log('readCounter', Number(fileData));
       callback(null, Number(fileData)); //callback will be writeCounter
     }
   });
 };
 
 const writeCounter = (count, callback) => {
-  console.log(count);
-  var counterString = zeroPaddedNumber(count + 1);
+  var counterString = zeroPaddedNumber(count);
   fs.writeFile(exports.counterFile, counterString, (err) => {
     if (err) {
       throw ('error writing counter');
     } else {
-      console.log('writeCounter', counterString);
       callback(null, counterString);
     }
   });
@@ -43,12 +40,20 @@ const writeCounter = (count, callback) => {
 // Public API - Fix this function //////////////////////////////////////////////
 
 exports.getNextUniqueId = (callback) => {
-  // we need to readfile to get the counter.txt
-  //writefile to put the next sequential number into counter
-  //get the zeropadded next number that was put in the counter.txt and pass it to a callback that creates the item.txt
-  readCounter(writeCounter((counterString) => { console.log(counterString); })); //callback to write item00001.txt file in data folder
-  return readCounter((fileData) => { fileData; });
 
+  readCounter (function(err, data) {
+    if (err) {
+      console.log('Error inside getNextUniqueId in readCounter');
+    } else {
+      writeCounter (data + 1, function(err, data) {
+        if (err) {
+          console.log('Error inside getNextUniqueId in writeCounter');
+        } else {
+          callback(null, data);
+        }
+      });
+    }
+  });
 };
 
 //exports.getNextUniqueId = (callback) => {

@@ -3,7 +3,7 @@ const path = require('path');
 const sprintf = require('sprintf-js').sprintf;
 
 //need to move this to a counter.txt file in the data folder
-//var counter = 0;
+var counter = 0;
 
 // Private helper functions ////////////////////////////////////////////////////
 
@@ -51,11 +51,13 @@ exports.getNextUniqueId = (callback) => {
 
 };
 
+//exports.getNextUniqueId = (callback) => {
 // readCounter (function(err, data) {
-//   writeCounter (function(err, data) {
-//     callback(null, counterString);
+//   writeCounter (data +1, function(err, data) {
+//     callback(null, data);
 //   });
 // });
+//}
 
 // counter = counter + 1;
 // return zeroPaddedNumber(counter);

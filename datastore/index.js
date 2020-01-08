@@ -9,57 +9,90 @@ var items = {};
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  var id = counter.getNextUniqueId();
-  var newFileName = id.toString() + '.txt';
-  var newFile = path.join(exports.dataDir, newFileName);
-  console.log('create', id, newFileName, newFile);
-  // items[id] = text;
-  //this adds to object which we don't want to do anymore.  we want to write a new file and put in data folder.
-  fs.writeFile(newFile, text, (err) => {
-    if (err) {
-      throw ('error writing new item file');
-    } else {
-      callback(null, { id, text });
-    }
+  counter.getNextUniqueId(( err, id) => {
+    const filePath = path.join(exports.dataDir, `${id}.txt`);
+    fs.writeFile(filePath, text, (err) => {
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, { id: id, text: text });
+      }
+    });
   });
 };
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+  //fs.readdir will return an array of filenames i.e. [00001.txt, 00002.txt, 00003.txt]
+  fs.readdir(exports.dataDir, (err, itemFileNames) => {
+    if (err) {
+      callback(err);
+    } else {
+      var data = itemFileNames.map((item) => {
+        return {id: item.slice(0, 5), text: item.slice(0, 5)};
+      });
+      callback(null, data);
+    }
   });
-  callback(null, data);
+  //take that array. map thru for each item. {id: item.slice(0,6), text: item.slice(0,6)}
 };
+
+//output: [{id: id, text: id}, {id: id, text: id}, {id: id, text: id}]
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  const filePath = path.join(exports.dataDir, `${id}.txt`);
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      callback(err);
+    } else {
+      callback(null, {id: id, text: data });//must get data.text to not be <BUFFER 45 67 67 73>
+    }
+  });
+  // var text = items[id];
+  // if (!text) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   callback(null, { id, text });
+  // }
 };
+//output: 'todo text';
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  const filePath = path.join(exports.dataDir, `${id}.txt`);
+  fs.readFile(filePath, (err, oldText) => {
+    if (err) {
+      callback(Error(`ERROR: No item with ${id}`));
+    } else {
+      fs.writeFile(filePath, text, (err) => {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null, {id: id, text: text.toString()});
+        }
+      });
+    }
+  });
 };
 
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
+  const filePath = path.join(exports.dataDir, `${id}.txt`);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      callback(err);
+    } else {
+      callback();
+    }
+  });
 };
+
+// var item = items[id];
+// delete items[id];
+// if (!item) {
+//   // report an error if item not found
+//   callback(new Error(`No item with id: ${id}`));
+// } else {
+//   callback();
+// }
+
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
 
